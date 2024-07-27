@@ -133,6 +133,7 @@ def find_k(rule: int, x:int, y:int, memory:dict):
         image = [Cell("B"+str(i)+str(j), i, j) for i in range(1,y+1) for j in range(1,x+1)]
         apply_rule(r, x, y, image)
         adj_matrix = create_adj_matrix(x, y, image)
+        print(*adj_matrix, sep="\n")
         res = find_max(r, x, y, image, adj_matrix, memory)
         if res[0] > m:
             m = res[0]
@@ -140,10 +141,11 @@ def find_k(rule: int, x:int, y:int, memory:dict):
     return (m, longest_chain)
 
 if __name__ == "__main__":
-    y = int(input("Enter the number of rows:\t"))
-    x = int(input("Enter the number of columns:\t"))
+    x = int(input("Enter the number of rows:\t"))
+    y = int(input("Enter the number of columns:\t"))
     rule = int(input("Enter the rule:\t"))
     m, chain = find_k(rule, x, y, {})
     print("Longest Chain:\t", chain)
+    print(m)
     print("Value of k:\t", 2**math.ceil(math.log2(m)))
     

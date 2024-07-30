@@ -86,8 +86,8 @@ def find_outgoing_nodes(pos:int, image, adj_matrix):
     return [image[i] for i in range(len(image)) if adj_matrix[pos][i] == 1]
 
 
-def find_chain(pos:int, x, y, chain:set, frm:Cell, image, adj_matrix):
-    chain.add(image[pos])
+def find_chain(pos:int, x, y, chain:list, frm:Cell, image, adj_matrix):
+    chain.append(image[pos])
     
     incoming = find_incoming_nodes(pos, image, adj_matrix)
     incoming = [node for node in incoming if node is not frm]
@@ -103,10 +103,10 @@ def find_max(rule: int, x, y, image, adj_matrix, memory:dict):
         return memory[rule]
     
     maxx = 0
-    longest_chain = set()
+    longest_chain = []
     for i in range(y):
         for j in range(x):
-            chain = set()
+            chain = []
             find_chain(get_pos(j, i, x), x, y, chain, None, image, adj_matrix)
             if len(chain) > maxx:
                 longest_chain = chain
@@ -128,7 +128,7 @@ def conv_to_c2(rule: int):
 def find_k(rule: int, x:int, y:int, memory:dict):
     comps = conv_to_c2(rule)
     m = 0
-    longest_chain = set()
+    longest_chain = []
     for r in comps:
         image = [Cell("B"+str(i)+str(j), i, j) for i in range(1,y+1) for j in range(1,x+1)]
         apply_rule(r, x, y, image)
@@ -140,8 +140,8 @@ def find_k(rule: int, x:int, y:int, memory:dict):
     return (m, longest_chain)
 
 if __name__ == "__main__":
-    x = int(input("Enter the number of rows:\t"))
-    y = int(input("Enter the number of columns:\t"))
+    y = int(input("Enter the number of rows:\t"))
+    x = int(input("Enter the number of columns:\t"))
     rule = int(input("Enter the rule:\t"))
     m, chain = find_k(rule, x, y, {})
     print("Longest Chain:\t", chain)

@@ -1,29 +1,11 @@
 import itertools
 import math
 
-class Cell:
-    def __init__(self, value:str =None, i:int=None, j:int=None):
-        self.value = value
-        self.i = i
-        self.j = j
-        self.x = None
-        self.y = None
+def print_cell(pos: int, size:int):
+    i = pos//size
+    j = pos%size
+    return f"Cell {j}{i}"
 
-    def set_pointers(self, cell1, cell2):
-        self.x = cell1
-        self.y = cell2
-
-    def set_x(self, cell1):
-        self.x = cell1
-
-    def set_y(self, cell2):
-        self.y = cell2
-    
-    def __repr__(self):
-        pointer1_value = self.x.value if self.x else None
-        pointer2_value = self.y.value if self.y else None
-        return f"Cell {self.value}"
-    
 def get_pos(x, y, size):
     return x+y*size
 
@@ -41,7 +23,16 @@ def set_neighbourhood(rule_l):
     neighbours[6] = rule_l[4]
     neighbours[7] = rule_l[3]
     neighbours[8] = rule_l[2]
-    return neighbours
+
+    n = []
+    ct = 0
+    for y in range(-1, 2):
+        for x in range(-1, 2):
+            if neighbours[ct]:
+                n.append((y, x))
+            ct += 1
+
+    return n
 
 def apply_rule(rule:int, x:int, y:int, image):
     rule_l = list(map(lambda x: int(x), list(format(rule, '09b'))))
@@ -49,56 +40,32 @@ def apply_rule(rule:int, x:int, y:int, image):
     neighbours = set_neighbourhood(rule_l)
     for i in range(y):
         for j in range(x):
-            # print(image[get_pos(j, i, x)])
             cell = image[get_pos(j, i, x)]
-            ct = 0
-            for y_ in range(-1,2):
-                for x_ in range(-1, 2):
-                    if check_in_bounds(j+x_, i+y_, x, y) and neighbours[ct] == 1:
-                        neighbour = image[get_pos(j+x_, i+y_, x)]
-                        if cell.x is None:
-                            cell.set_x(neighbour)
-                        elif cell.y is None:
-                            cell.set_y(neighbour)
-                    ct+=1            
+            for x,y in neighbours:
+                if check_in_bounds(j+x, i+y, x, y) and neighbours[ct] == 1:
+                    neighbour = get_pos(j+x, i+y, x)
+                    cell.append(neighbour)
 
-
-def create_adj_matrix(x:int, y:int, image):
-    adj_matrix = [[0 for j in range(len(image))] for i in range(len(image))]
-    for i, cell in enumerate(image):
-        if cell.x is not None:
-            adj_matrix[i][get_pos(cell.x.j-1, cell.x.i-1, x)] = 1
-        if cell.y is not None:
-            adj_matrix[i][get_pos(cell.y.j-1, cell.y.i-1, x)] = 1
-    
-    return adj_matrix
-
-
-def find_incoming_nodes(pos:int, image, adj_matrix):
+def find_incoming_nodes(pos:int, image):
     nodes = []
     for i in range(len(image)):
-        if adj_matrix[i][pos] == 1:
-            nodes.append(image[i])
+        if pos in image[i]:
+            nodes.append(i)
     
     return nodes
 
-def find_outgoing_nodes(pos:int, image, adj_matrix):
-    return [image[i] for i in range(len(image)) if adj_matrix[pos][i] == 1]
-
-
-def find_chain(pos:int, x, y, chain:list, frm:Cell, image, adj_matrix):
-    chain.append(image[pos])
+def find_chain(pos:int, cols:int, chain:list, frm:int, image):
+    chain.append(print_cell(pos, cols))
     
-    incoming = find_incoming_nodes(pos, image, adj_matrix)
+    incoming = find_incoming_nodes(pos, image)
     incoming = [node for node in incoming if node is not frm]
     for node in incoming:
-        outgoing = find_outgoing_nodes(get_pos(node.j-1, node.i-1, x), image, adj_matrix)
+        outgoing = image[node]
         for n in outgoing:
-            if n is not image[pos]:
-                find_chain(get_pos(n.j-1, n.i-1, x), x, y, chain, node, image, adj_matrix)
+            if n is image[pos]:
+                find_chain(get_pos(n.j-1, n.i-1, x), cols, chain, node, image)
 
-
-def find_max(rule: int, x, y, image, adj_matrix, memory:dict):
+def find_max(rule: int, x, y, image, memory:dict):
     if(rule in memory.keys()):
         return memory[rule]
     
@@ -107,12 +74,11 @@ def find_max(rule: int, x, y, image, adj_matrix, memory:dict):
     for i in range(y):
         for j in range(x):
             chain = []
-            find_chain(get_pos(j, i, x), x, y, chain, None, image, adj_matrix)
+            find_chain(get_pos(j, i, x), x, chain, None, image)
             if len(chain) > maxx:
                 longest_chain = chain
                 maxx = len(chain)
     
-    # print(longest_chain)
     memory[rule] = (maxx, longest_chain)
     return (maxx, longest_chain)
 
@@ -130,10 +96,10 @@ def find_k(rule: int, x:int, y:int, memory:dict):
     m = 0
     longest_chain = []
     for r in comps:
-        image = [Cell("B"+str(i)+str(j), i, j) for i in range(1,y+1) for j in range(1,x+1)]
+        image = [[] for i in range(0,y) for j in range(0,x)]
         apply_rule(r, x, y, image)
-        adj_matrix = create_adj_matrix(x, y, image)
-        res = find_max(r, x, y, image, adj_matrix, memory)
+        # print(*image, sep="\n")
+        res = find_max(r, x, y, image, memory)
         if res[0] > m:
             m = res[0]
             longest_chain = res[1]

@@ -29,7 +29,7 @@ def set_neighbourhood(rule_l):
     for y in range(-1, 2):
         for x in range(-1, 2):
             if neighbours[ct]:
-                n.append((y, x))
+                n.append((x, y))
             ct += 1
 
     return n
@@ -41,9 +41,9 @@ def apply_rule(rule:int, x:int, y:int, image):
     for i in range(y):
         for j in range(x):
             cell = image[get_pos(j, i, x)]
-            for x,y in neighbours:
-                if check_in_bounds(j+x, i+y, x, y) and neighbours[ct] == 1:
-                    neighbour = get_pos(j+x, i+y, x)
+            for x_,y_ in neighbours:
+                if check_in_bounds(j+x_, i+y_, x, y):
+                    neighbour = get_pos(j+x_, i+y_, x)
                     cell.append(neighbour)
 
 def find_incoming_nodes(pos:int, image):
@@ -62,8 +62,9 @@ def find_chain(pos:int, cols:int, chain:list, frm:int, image):
     for node in incoming:
         outgoing = image[node]
         for n in outgoing:
-            if n is image[pos]:
-                find_chain(get_pos(n.j-1, n.i-1, x), cols, chain, node, image)
+            if n != pos:
+                find_chain(n, cols, chain, node, image)
+
 
 def find_max(rule: int, x, y, image, memory:dict):
     if(rule in memory.keys()):
@@ -98,12 +99,12 @@ def find_k(rule: int, x:int, y:int, memory:dict):
     for r in comps:
         image = [[] for i in range(0,y) for j in range(0,x)]
         apply_rule(r, x, y, image)
-        # print(*image, sep="\n")
         res = find_max(r, x, y, image, memory)
         if res[0] > m:
             m = res[0]
             longest_chain = res[1]
     return (m, longest_chain)
+
 
 if __name__ == "__main__":
     y = int(input("Enter the number of rows:\t"))
@@ -112,4 +113,4 @@ if __name__ == "__main__":
     m, chain = find_k(rule, x, y, {})
     print("Longest Chain:\t", chain)
     print("Value of k:\t", 2**math.ceil(math.log2(m)))
-    
+

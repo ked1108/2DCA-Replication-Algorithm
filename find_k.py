@@ -3,11 +3,16 @@ import math
 
 def print_cell(pos: int, size:int):
     i = pos//size
-    j = pos%size
-    return f"Cell {j}{i}"
+    j = pos%size-1
+    return f"Cell {i}{j}"
 
 def get_pos(x, y, size):
     return x+y*size
+
+def check_border(pos: int, rows: int,  cols: int):
+    i = pos//cols
+    j = pos%cols -1
+    return (j <= 0 or i == 0 or i == rows-1)
 
 def check_in_bounds(i, j, x, y):
     return i >= 0 and i < x and j >= 0 and j < y
@@ -54,7 +59,9 @@ def find_incoming_nodes(pos:int, image):
     
     return nodes
 
-def find_chain(pos:int, cols:int, chain:list, frm:int, image):
+def find_chain(pos:int, rows: int, cols:int, chain:list, frm:int, image):
+    if(check_border(pos, rows, cols)):
+        return
     chain.append(print_cell(pos, cols))
     
     incoming = find_incoming_nodes(pos, image)
@@ -63,19 +70,20 @@ def find_chain(pos:int, cols:int, chain:list, frm:int, image):
         outgoing = image[node]
         for n in outgoing:
             if n != pos:
-                find_chain(n, cols, chain, node, image)
+                find_chain(n, rows, cols, chain, node, image)
 
 
-def find_max(rule: int, x, y, image, memory:dict):
+def find_max(rule: int, x: int, y: int, image: list, memory:dict):
     if(rule in memory.keys()):
         return memory[rule]
     
     maxx = 0
     longest_chain = []
-    for i in range(y):
-        for j in range(x):
+    for i in range(1, x-1):
+        for j in range(1, x-1):
             chain = []
-            find_chain(get_pos(j, i, x), x, chain, None, image)
+            print(get_pos(j, i, x))
+            find_chain(get_pos(j, i, x), y, x, chain, None, image)
             if len(chain) > maxx:
                 longest_chain = chain
                 maxx = len(chain)
@@ -94,6 +102,7 @@ def conv_to_c2(rule: int):
 
 def find_k(rule: int, x:int, y:int, memory:dict):
     comps = conv_to_c2(rule)
+    # print(comps)
     m = 0
     longest_chain = []
     for r in comps:
@@ -107,8 +116,8 @@ def find_k(rule: int, x:int, y:int, memory:dict):
 
 
 if __name__ == "__main__":
-    y = int(input("Enter the number of rows:\t"))
-    x = int(input("Enter the number of columns:\t"))
+    y = int(input("Enter the number of rows:\t"))+2
+    x = int(input("Enter the number of columns:\t"))+2
     rule = int(input("Enter the rule:\t"))
     m, chain = find_k(rule, x, y, {})
     print("Longest Chain:\t", chain)

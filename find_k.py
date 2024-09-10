@@ -56,14 +56,14 @@ def find_incoming_nodes(pos:int, image):
     for i in range(len(image)):
         if pos in image[i]:
             nodes.append(i)
-    
+
     return nodes
 
 def find_chain(pos:int, rows: int, cols:int, chain:list, frm:int, image):
     if(check_border(pos, rows, cols)):
         return
     chain.append(print_cell(pos, cols))
-    
+
     incoming = find_incoming_nodes(pos, image)
     incoming = [node for node in incoming if node is not frm]
     for node in incoming:
@@ -73,22 +73,18 @@ def find_chain(pos:int, rows: int, cols:int, chain:list, frm:int, image):
                 find_chain(n, rows, cols, chain, node, image)
 
 
-def find_max(rule: int, x: int, y: int, image: list, memory:dict):
-    if(rule in memory.keys()):
-        return memory[rule]
-    
+def find_max(rule: int, x: int, y: int, image: list):
+
     maxx = 0
     longest_chain = []
     for i in range(1, x-1):
         for j in range(1, x-1):
             chain = []
-            print(get_pos(j, i, x))
             find_chain(get_pos(j, i, x), y, x, chain, None, image)
             if len(chain) > maxx:
                 longest_chain = chain
                 maxx = len(chain)
-    
-    memory[rule] = (maxx, longest_chain)
+
     return (maxx, longest_chain)
 
 
@@ -96,19 +92,22 @@ def conv_to_c2(rule: int):
     l = list(map(int, reversed(list(format(rule, '09b')))))
     l = [i for i,j in enumerate(l) if j != 0]
     comps = list(map(lambda x:2**x[0]+2**x[1], itertools.combinations(l, 2)))
-    
-    return comps
-    
 
-def find_k(rule: int, x:int, y:int, memory:dict):
+    return comps
+
+
+def find_k(rule: int, x:int, y:int):
     comps = conv_to_c2(rule)
-    # print(comps)
+    print(comps)
     m = 0
     longest_chain = []
     for r in comps:
+        print("RULE:\t", r)
         image = [[] for i in range(0,y) for j in range(0,x)]
         apply_rule(r, x, y, image)
-        res = find_max(r, x, y, image, memory)
+        for idx, elem in enumerate(image):
+            print("index:\t", idx, ", edges:\t", elem)
+        res = find_max(r, x, y, image)
         if res[0] > m:
             m = res[0]
             longest_chain = res[1]
@@ -119,7 +118,11 @@ if __name__ == "__main__":
     y = int(input("Enter the number of rows:\t"))+2
     x = int(input("Enter the number of columns:\t"))+2
     rule = int(input("Enter the rule:\t"))
-    m, chain = find_k(rule, x, y, {})
+    for i in range(y-2):
+        for j in range(x-2):
+            print("B{0}{1}".format(i+1, j+1), end=" ")
+        print()
+    m, chain = find_k(rule, x, y)
     print("Longest Chain:\t", chain)
     print("Value of k:\t", 2**math.ceil(math.log2(m)))
 

@@ -99,19 +99,21 @@ def conv_to_c2(rule: int):
 def find_k(rule: int, x:int, y:int):
     comps = conv_to_c2(rule)
     print(comps)
+    r_max = 0
     m = 0
     longest_chain = []
     for r in comps:
         print("RULE:\t", r)
         image = [[] for i in range(0,y) for j in range(0,x)]
         apply_rule(r, x, y, image)
-        for idx, elem in enumerate(image):
-            print("index:\t", idx, ", edges:\t", elem)
+        # for idx, elem in enumerate(image):
+        #     print("index:\t", idx, ", edges:\t", elem)
         res = find_max(r, x, y, image)
         if res[0] > m:
+            r_max = r;
             m = res[0]
             longest_chain = res[1]
-    return (m, longest_chain)
+    return (r_max, m, longest_chain)
 
 
 if __name__ == "__main__":
